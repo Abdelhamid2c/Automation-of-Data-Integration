@@ -261,7 +261,7 @@ def Read_wire_list(path_wire_list):
 
     df_wire_list['Wire Internal Name'] = df_wire_list['Wire Internal Name'].str.replace('W', '').astype(int)
 
-    df_wire_list[PN_columns_wirelist] = df_wire_list[PN_columns_wirelist].replace('X', 1).astype(int)
+    df_wire_list[PN_columns_wirelist] = df_wire_list[PN_columns_wirelist].replace('X', 1).fillna(0).astype(int)
     df_wire_list[PN_columns_wirelist] = df_wire_list[PN_columns_wirelist].apply(pd.to_numeric, errors='coerce').fillna(0).astype(int)
     return df_wire_list
 
@@ -509,7 +509,7 @@ logo_path = resource_path("../assets/yazaki_logo.png")
 
 root = tk.Tk()
 root.title("Data Integration - Yazaki")
-root.geometry("350x550")
+root.geometry("350x600")
 
 try:
     img = Image.open(logo_path)
