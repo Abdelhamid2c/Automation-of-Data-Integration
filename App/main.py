@@ -30,12 +30,12 @@ def Fill(level : str, df_mmsta):
             # PN_arr.append(df_mmsta.loc[idx_last_l]['Material Description'])
     return df_mmsta
 
-def del_vals(mat_desc : str):
-    vals_to_del = ['ctgf', 'gaft', 'cut tube']
-    for v in vals_to_del:
-        if v in mat_desc.lower():
-            return False
-    return True
+# def del_vals(mat_desc : str):
+#     vals_to_del = ['ctgf', 'gaft', 'cut tube']
+#     for v in vals_to_del:
+#         if v in mat_desc.lower():
+#             return False
+#     return True
 
 def Fill_with_col(level : str, cols,df):
     idx_last_l = None
@@ -66,10 +66,10 @@ def separator(MMSTA_path, output_file):
     df_mmsta = add_columns(df_mmsta)
     df_mmsta = Fill('0',df_mmsta)
     
-    proccessed_log = df_mmsta['Material Description'].apply(del_vals)
-    df_mmsta = df_mmsta[proccessed_log].reset_index(drop=True)
+    # proccessed_log = df_mmsta['Material Description'].apply(del_vals)
+    # df_mmsta = df_mmsta[proccessed_log].reset_index(drop=True)
 
-    df_mmsta = df_mmsta.reset_index()
+    df_mmsta = df_mmsta.reset_index(drop=True)
 
     for level in df_mmsta['Level'].unique().tolist():
         sn = 'SN'+ level[-1]
