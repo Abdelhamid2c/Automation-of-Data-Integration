@@ -12,6 +12,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 
+pd.set_option('future.no_silent_downcasting', True)
 
 
 
@@ -272,7 +273,14 @@ class ExcelProcessor:
     def setup_ui(self):
         title_label = Label(self.root, text="Data Integrator Processor", font=("Arial", 16, "bold"))
         title_label.pack(pady=10)
-        
+ 
+        designer_label = tk.Label(
+                                root,
+                                text="Designed by Abdelhamid Chebel & Abdelali Laouge",
+                                font=("Helvetica", 8),
+                                fg="gray"
+                            )
+        designer_label.pack(side="bottom", pady=5)
         
         # MMSTA file selection
         self.MMSTA_button = Button(self.root, text="Select MMSTA File", command=self.select_MMSTA_file)
@@ -785,11 +793,10 @@ class ExcelProcessor:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.title("Data Integrator Processor - YMM-1")
+    root.title("Data Integrator Processor - YMM-1 (Trial Version)")
     
-    # Adjust window size to accommodate the new buttons
-    window_width = 500
-    window_height = 550
+    window_width = 450
+    window_height = 450
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     x_position = (screen_width - window_width) // 2
