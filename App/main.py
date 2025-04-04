@@ -30,12 +30,6 @@ def Fill(level : str, df_mmsta):
             # PN_arr.append(df_mmsta.loc[idx_last_l]['Material Description'])
     return df_mmsta
 
-# def del_vals(mat_desc : str):
-#     vals_to_del = ['ctgf', 'gaft', 'cut tube']
-#     for v in vals_to_del:
-#         if v in mat_desc.lower():
-#             return False
-#     return True
 
 def Fill_with_col(level : str, cols,df):
     idx_last_l = None
