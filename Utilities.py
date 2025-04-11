@@ -124,8 +124,6 @@ def color_connector_cavities_corrected(ws):
     print("Coloration terminée.")
     return ws
 
-
-
 def color_all_Cavities(path):
     wb = xw.Book(path)
     ws = wb.sheets
@@ -136,9 +134,8 @@ def color_all_Cavities(path):
     wb.save(path)
     
     
-def find_first_empty_row(file_path, sheet_name=None):
+def find_first_empty_row(wb, sheet_name=None):
     try:
-        wb = xw.Book(file_path)
         
         if sheet_name:
             sheet = wb.sheets[sheet_name]
@@ -158,17 +155,20 @@ def find_first_empty_row(file_path, sheet_name=None):
                 
                 bottom_row = top_row
                 pic_bottom = pic.top + pic.height
-                while bottom_row <= last_row and sheet.range(f"A{bottom_row}").top < pic_bottom:
+                while bottom_row >= last_row and sheet.range(f"A{bottom_row}").top < pic_bottom:
                     bottom_row += 1
                 
                 for r in range(top_row-1, bottom_row+1):
                     image_rows.add(r)
+            print(image_rows)
         
-        for row in range(1, last_row + 2):
-            if (sheet.range(f"A{row}").value is None) and (row not in image_rows):
-                return row
+        else :
+            # for row in range(1, last_row + 2):
+            #     if (sheet.range(f"A{row}").value is None) and (row not in image_rows):
+            #         return row
+            return last_row
         
-        return max(last_row + 1, max(image_rows) + 1 if image_rows else 0)
+        return max(last_row + 1, max(image_rows) - 1 if image_rows else 0)
         
     except Exception as e:
         print(f"Error: {e}")
@@ -298,11 +298,13 @@ def get_connecteurs(liste_connecteurs, chemin_connecteurs, output_file, output_s
             if source_sheet_name not in get_sheet_names(wb_connecteurs):
                 print(f"Erreur: Feuille '{source_sheet_name}' non trouvée dans '{chemin_connecteurs}'")
                 continue
-            first_empty_row = find_first_empty_row(output_file, output_sheet_name)
+            first_empty_row = find_first_empty_row(wb_output, output_sheet_name)
+            find_first_empty_row(wb_output, output_sheet_name)
             position = f"A{first_empty_row}"
             
             capture_sheet_as_image(chemin_connecteurs, source_sheet_name, output_file, output_sheet_name,position)
             print(f"Image de '{source_sheet_name}' capturée dans '{output_sheet_name}' à la position {position}")
+            wb_output.save()
         
     except Exception as e:
         print(f"Erreur: {e}")
@@ -313,3 +315,39 @@ def get_connecteurs(liste_connecteurs, chemin_connecteurs, output_file, output_s
 # output_file = r"C:\Users\user\Desktop\Connecters\output.xlsx"
 # output_sheet_name = "sps"
 # get_connecteurs(liste_connecteurs, chemin_connecteurs, output_file, output_sheet_name)
+
+
+def remove_diagonal_line_for_cavity(ws, cavity_number):
+
+    line_name = f"DiagLine_Cavity_{cavity_number}"
+    
+    for shape in ws.shapes:
+        try:
+            if shape.name == line_name:
+                print(f"Found diagonal line for cavity {cavity_number}, removing it")
+                shape.delete()
+                return True
+        except Exception as e:
+            print(f"Error processing shape: {e}")
+    
+    return False
+
+def remove_fill_from_all_shapes(ws):
+
+    print(f"Processing worksheet: {ws.name}")
+    
+    for shape in ws.shapes:
+        digits = re.match(r'^\d+$', shape.name)
+        if digits:
+            digits = digits.group(0)
+            shape.api.Fill.Visible = False
+            remove_diagonal_line_for_cavity(ws, float(shape.name))
+            print(f"Shape '{shape.name}': {digits}") 
+    else :
+        print(f"Shape '{shape.name}': No digits found")
+       
+
+
+# path = r"C:\Users\user\Desktop\Connecters\Copy_c2.xlsx"
+# wb = xw.Book(path)
+# ws = wb.sheets["C46"] 

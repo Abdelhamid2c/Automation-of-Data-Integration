@@ -1,0 +1,114 @@
+Sub ColorConnectorCavities___2()
+    Dim ws As Worksheet
+    Dim startRow As Long
+    Dim lastRow As Long
+    Dim cavityNumber As Variant ' Use Variant to handle potential non-numeric values gracefully
+    Dim backgroundColor As Long
+    Dim lineColor As Long
+    Dim shp As Shape
+    Dim diagLine As Shape
+    Dim foundShape As Boolean
+    Dim x1 As Single, y1 As Single, x2 As Single, y2 As Single
+    Dim tempShape As Shape ' For deleting old lines
+
+    ' Set the target worksheet to the currently active one
+    Set ws = ActiveSheet
+    If ws Is Nothing Then
+        MsgBox "No active worksheet found.", vbCritical
+        Exit Sub
+    End If
+
+    ' --- Cleanup Phase: Delete previously drawn diagonal lines ---
+    ' Loop backwards when deleting items from a collection
+    On Error Resume Next ' Ignore errors if a shape can't be deleted or accessed
+    For Each tempShape In ws.Shapes
+        If tempShape.Name Like "DiagLine_Cavity_*" Then
+            tempShape.Delete
+        End If
+    Next tempShape
+    On Error GoTo 0 ' Turn error handling back to normal
+
+    ' --- Processing Phase ---
+    startRow = 16 ' Starting row for cavity data
+
+    ' Find the last row with data in column A (optional, but good practice)
+    ' If you prefer to loop until an empty cell, you can remove this and adjust the loop condition
+    ' lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    ' If lastRow < startRow Then lastRow = startRow ' Handle case where there's no data below startRow
+
+    ' Loop through the data rows
+    Dim currentRow As Long
+    currentRow = startRow
+    Do While Trim(CStr(ws.Cells(currentRow, "A").Value)) <> "" ' Loop until column A is empty
+
+        cavityNumber = ws.Cells(currentRow, "A").Value
+        backgroundColor = ws.Cells(currentRow, "B").Interior.Color
+
+        ' Attempt to get the diagonal border color, handle if it doesn't exist
+        lineColor = backgroundColor ' Default to black if no border found
+        On Error Resume Next ' Temporarily ignore errors
+        lineColor = ws.Cells(currentRow, "B").Borders(xlDiagonalUp).Color
+        If Err.Number <> 0 Then
+            lineColor = backgroundColor ' Reset to black if border doesn't exist or error occurred
+            Err.Clear
+        End If
+        On Error GoTo 0 ' Resume normal error handling
+
+        foundShape = False
+
+        ' Loop through shapes to find the matching cavity circle
+        For Each shp In ws.Shapes
+            On Error Resume Next ' Ignore shapes that don't support TextFrame
+            If shp.Type = msoGroup Then ' Skip grouped shapes for simplicity
+                 ' You might need more complex logic if circles are grouped
+            ElseIf shp.TextFrame2.HasText Then
+                 If Trim(shp.TextFrame2.TextRange.Text) = Trim(CStr(cavityNumber)) Then
+                    ' Found the matching shape
+                    foundShape = True
+
+                    ' Apply background color
+                    shp.Fill.Visible = msoTrue
+                    shp.Fill.Solid
+                    shp.Fill.ForeColor.RGB = backgroundColor
+
+                    ' Hide the original shape outline
+                    shp.Line.Visible = msoFalse
+
+                    ' Calculate coordinates for the diagonal line (top-left to bottom-right)
+                    x1 = shp.Left
+                    y1 = shp.Top
+                    x2 = shp.Left + shp.Width
+                    y2 = shp.Top + shp.Height
+
+                    ' Add the new diagonal line shape
+                    Set diagLine = ws.Shapes.AddLine(x1, y1, x2, y2)
+
+                    ' Format and name the new line
+                    With diagLine
+                        .Name = "DiagLine_Cavity_" & cavityNumber ' Assign specific name
+                        .Line.ForeColor.RGB = lineColor
+                        .Line.Weight = 2.5 ' Adjust thickness as needed
+                        .Line.Visible = msoTrue
+                    End With
+
+                    Exit For ' Exit shape loop once found and processed
+                End If
+            End If
+            On Error GoTo 0 ' Resume normal error handling for next shape
+        Next shp
+
+        ' Optional: Notify if a shape wasn't found for a cavity number
+        If Not foundShape Then
+            Debug.Print "Warning: Shape for Cavity Number '" & cavityNumber & "' in row " & currentRow & " not found."
+            ' You could use MsgBox instead of Debug.Print if you want user notification
+            ' MsgBox "Warning: Shape for Cavity Number '" & cavityNumber & "' not found.", vbExclamation
+        End If
+
+        currentRow = currentRow + 1 ' Move to the next data row
+    Loop
+
+    MsgBox "Cavity coloring process complete.", vbInformation
+
+End Sub
+
+
